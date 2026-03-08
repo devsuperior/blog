@@ -3,7 +3,6 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd -P)"
-TEMPLATE_FILE="${REPO_ROOT}/templates/article/README.template.md"
 ARTICLES_DIR="${REPO_ROOT}/articles"
 ROOT_README_FILE="${REPO_ROOT}/README.md"
 
@@ -16,6 +15,17 @@ escape_markdown_cell() {
   printf '%s' "$value"
 }
 
+slugify() {
+  local value="$1"
+  local slug
+
+  slug="$(printf '%s' "${value}" \
+    | tr '[:upper:]' '[:lower:]' \
+    | sed -E 's/[^a-z0-9]+/-/g; s/-+/-/g; s/^-+//; s/-+$//')"
+
+  printf '%s' "${slug}"
+}
+
 if [[ $# -gt 0 ]]; then
   echo "Erro: este script agora e interativo e nao aceita parametros via CLI." >&2
   echo "Uso: bash scripts/new-article.sh" >&2
@@ -26,11 +36,7 @@ ARTICLE_ID=""
 TITLE=""
 STACK="preencher"
 PROJECT_NAMES=()
-
-if [[ ! -f "${TEMPLATE_FILE}" ]]; then
-  echo "Erro: template nao encontrado em ${TEMPLATE_FILE}" >&2
-  exit 1
-fi
+PROJECT_OBJECTIVES=()
 
 if [[ ! -f "${ROOT_README_FILE}" ]]; then
   echo "Erro: README da raiz nao encontrado em ${ROOT_README_FILE}" >&2
@@ -40,15 +46,15 @@ fi
 echo "Criacao de novo artigo (modo interativo)"
 
 while true; do
-  read -r -p "Article id (slug-do-artigo): " ARTICLE_ID
-
-  if [[ -z "${ARTICLE_ID}" ]]; then
-    echo "Erro: article id e obrigatorio."
+  read -r -p "Titulo do artigo: " TITLE
+  if [[ -z "${TITLE}" ]]; then
+    echo "Erro: titulo e obrigatorio."
     continue
   fi
 
-  if [[ ! "${ARTICLE_ID}" =~ ^[a-z0-9-]+$ ]]; then
-    echo "Erro: article id deve conter apenas letras minusculas, numeros e hifen."
+  ARTICLE_ID="$(slugify "${TITLE}")"
+  if [[ -z "${ARTICLE_ID}" ]]; then
+    echo "Erro: nao foi possivel gerar slug a partir do titulo informado."
     continue
   fi
 
@@ -62,20 +68,15 @@ while true; do
 
   if grep -Fq "| \`${ARTICLE_ID}\` |" "${ROOT_README_FILE}" || \
      grep -Fq "(articles/${ARTICLE_ID}/)" "${ROOT_README_FILE}"; then
-    echo "Erro: o indice em README.md ja possui o artigo ${ARTICLE_ID}."
+    echo "Erro: o slug gerado (${ARTICLE_ID}) ja existe no indice."
+    echo "Dica: informe outro titulo para gerar um slug diferente."
     continue
   fi
 
   break
 done
 
-while true; do
-  read -r -p "Titulo do artigo: " TITLE
-  if [[ -n "${TITLE}" ]]; then
-    break
-  fi
-  echo "Erro: titulo e obrigatorio."
-done
+echo "Slug gerado automaticamente: ${ARTICLE_ID}"
 
 read -r -p "Stack principal [preencher]: " STACK_INPUT
 if [[ -n "${STACK_INPUT}" ]]; then
@@ -84,15 +85,20 @@ fi
 
 echo "Informe os projetos (deixe vazio para finalizar):"
 while true; do
-  read -r -p "Projeto: " project
+  read -r -p "Projeto: " project_raw
 
-  if [[ -z "${project}" ]]; then
+  if [[ -z "${project_raw}" ]]; then
     break
   fi
 
-  if [[ ! "${project}" =~ ^[a-z0-9-]+$ ]]; then
-    echo "Erro: projeto deve conter apenas letras minusculas, numeros e hifen."
+  project="$(slugify "${project_raw}")"
+  if [[ -z "${project}" ]]; then
+    echo "Erro: nome de projeto invalido."
     continue
+  fi
+
+  if [[ "${project}" != "${project_raw}" ]]; then
+    echo "Nome de projeto normalizado para: ${project}"
   fi
 
   already_added=0
@@ -108,12 +114,31 @@ while true; do
     continue
   fi
 
+  while true; do
+    read -r -p "Objetivo do projeto ${project}: " objective
+    if [[ -n "${objective//[[:space:]]/}" ]]; then
+      break
+    fi
+    echo "Erro: objetivo do projeto e obrigatorio."
+  done
+
   PROJECT_NAMES+=("${project}")
+  PROJECT_OBJECTIVES+=("${objective}")
 done
 
 if [[ ${#PROJECT_NAMES[@]} -eq 0 ]]; then
   PROJECT_NAMES=("app")
   echo "Nenhum projeto informado. Usando projeto padrao: app"
+
+  while true; do
+    read -r -p "Objetivo do projeto app: " default_objective
+    if [[ -n "${default_objective//[[:space:]]/}" ]]; then
+      break
+    fi
+    echo "Erro: objetivo do projeto e obrigatorio."
+  done
+
+  PROJECT_OBJECTIVES=("${default_objective}")
 fi
 
 mkdir -p "${ARTICLE_DIR}/projects" "${ARTICLE_DIR}/assets" "${ARTICLE_DIR}/docs"
@@ -127,12 +152,15 @@ for project in "${PROJECT_NAMES[@]}"; do
 done
 
 projects_section_file="$(mktemp)"
-for project in "${PROJECT_NAMES[@]}"; do
+for i in "${!PROJECT_NAMES[@]}"; do
+  project="${PROJECT_NAMES[$i]}"
+  objective="${PROJECT_OBJECTIVES[$i]}"
+
   cat <<EOF >> "${projects_section_file}"
 ### ${project}
 
 - Caminho: \`projects/${project}\`
-- Objetivo: <resumo-da-poc>
+- Objetivo: ${objective}
 
 #### Execucao local
 
@@ -151,20 +179,18 @@ cd articles/${ARTICLE_ID}/projects/${project}
 EOF
 done
 
-tmp_readme_file="$(mktemp)"
-while IFS= read -r line || [[ -n "${line}" ]]; do
-  if [[ "${line}" == "<projects-section>" ]]; then
-    cat "${projects_section_file}" >> "${tmp_readme_file}"
-    continue
-  fi
+cat > "${README_FILE}" <<EOF
+# ${ARTICLE_ID}
 
-  line="${line//<article-id>/${ARTICLE_ID}}"
-  line="${line//<titulo-do-artigo>/${TITLE}}"
-  line="${line//<tecnologias-principais>/${STACK}}"
-  printf '%s\n' "${line}" >> "${tmp_readme_file}"
-done < "${TEMPLATE_FILE}"
+## Metadados
 
-mv "${tmp_readme_file}" "${README_FILE}"
+- Titulo: ${TITLE}
+- Stack: ${STACK}
+
+## Projetos
+
+EOF
+cat "${projects_section_file}" >> "${README_FILE}"
 rm -f "${projects_section_file}"
 
 projects_table_cell=""
