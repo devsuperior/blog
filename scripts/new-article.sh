@@ -13,10 +13,10 @@ INDEX_SEPARATOR='| --- | --- | --- | --- |'
 usage() {
   cat <<'EOF'
 Usage:
-  bash scripts/new-article.sh --id YYYY-MM-slug --title "Titulo" [options]
+  bash scripts/new-article.sh --id slug-do-artigo --title "Titulo" [options]
 
 Required:
-  --id         Article id no formato YYYY-MM-slug
+  --id         Article id no formato slug-do-artigo
   --title      Titulo do artigo
 
 Optional:
@@ -27,7 +27,7 @@ Optional:
 
 Example:
   bash scripts/new-article.sh \
-    --id 2026-03-introducao-ao-kafka \
+    --id introducao-ao-kafka \
     --title "Introducao ao Kafka" \
     --project kafka-api \
     --project kafka-consumer \
@@ -87,8 +87,8 @@ if [[ -z "${ARTICLE_ID}" || -z "${TITLE}" ]]; then
   exit 1
 fi
 
-if [[ ! "${ARTICLE_ID}" =~ ^[0-9]{4}-(0[1-9]|1[0-2])-[a-z0-9-]+$ ]]; then
-  echo "Erro: --id deve seguir o formato YYYY-MM-slug (minusculo)." >&2
+if [[ ! "${ARTICLE_ID}" =~ ^[a-z0-9-]+$ ]]; then
+  echo "Erro: --id deve seguir o formato slug-do-artigo (minusculo)." >&2
   exit 1
 fi
 
@@ -108,7 +108,6 @@ fi
 
 ARTICLE_DIR="${ARTICLES_DIR}/${ARTICLE_ID}"
 README_FILE="${ARTICLE_DIR}/README.md"
-DATE_REF="${ARTICLE_ID:0:7}"
 
 if [[ -d "${ARTICLE_DIR}" ]]; then
   echo "Erro: artigo ja existe: ${ARTICLE_DIR}" >&2
@@ -198,7 +197,6 @@ while IFS= read -r line || [[ -n "${line}" ]]; do
   line="${line//<article-id>/${ARTICLE_ID}}"
   line="${line//<titulo-do-artigo>/${TITLE}}"
   line="${line//<status>/${STATUS}}"
-  line="${line//<YYYY-MM>/${DATE_REF}}"
   line="${line//<tecnologias-principais>/${STACK}}"
   printf '%s\n' "${line}" >> "${tmp_readme_file}"
 done < "${TEMPLATE_FILE}"

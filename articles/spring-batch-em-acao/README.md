@@ -1,11 +1,10 @@
-# 2026-02-spring-batch-em-acao
+# spring-batch-em-acao
 
 ## Metadados
 
 - Titulo: Spring Batch em acao: processamento de grandes lotes de dados
 - Status: em preparacao
 - URL do artigo: preencher apos publicacao
-- Data de referencia: 2026-02
 - Stack: Java, Spring Boot, Spring Batch
 
 ## Projetos
@@ -18,13 +17,13 @@
 #### Execucao local (PowerShell)
 
 ```powershell
-cd articles/2026-02-spring-batch-em-acao/projects/car-dealer
+cd articles/spring-batch-em-acao/projects/car-dealer
 .\mvnw.cmd spring-boot:run
 ```
 
 #### Testes
 
 ```powershell
-cd articles/2026-02-spring-batch-em-acao/projects/car-dealer
+cd articles/spring-batch-em-acao/projects/car-dealer
 .\mvnw.cmd test
 ```

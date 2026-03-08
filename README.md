@@ -5,7 +5,7 @@ Cada artigo tecnico com codigo pratico deve ter sua pasta propria dentro de `art
 
 ## Convencoes
 
-- `article-id`: `YYYY-MM-slug-do-artigo` (ex: `2026-02-spring-batch-em-acao`)
+- `article-id`: `slug-do-artigo` (ex: `spring-batch-em-acao`)
 - `project-name`: nome curto e descritivo (ex: `car-dealer`)
 - Cada artigo deve ter um `README.md` com:
   - titulo do artigo
@@ -21,7 +21,7 @@ Use o script (Git Bash / Linux):
 
 ```bash
 bash scripts/new-article.sh \
-  --id 2026-03-introducao-ao-kafka \
+  --id introducao-ao-kafka \
   --title "Introducao ao Kafka" \
   --project kafka-api \
   --project kafka-consumer \
@@ -38,4 +38,4 @@ O script:
 
 | article-id | titulo | stack | projetos |
 | --- | --- | --- | --- |
-| [`2026-02-spring-batch-em-acao`](articles/2026-02-spring-batch-em-acao/) | Spring Batch em acao: processamento de grandes lotes de dados | Java, Spring Boot, Spring Batch | `car-dealer` |
+| [`spring-batch-em-acao`](articles/spring-batch-em-acao/) | Spring Batch em acao: processamento de grandes lotes de dados | Java, Spring Boot, Spring Batch | `car-dealer` |
