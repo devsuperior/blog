@@ -9,11 +9,8 @@ Cada artigo tecnico com codigo pratico deve ter sua pasta propria dentro de `art
 - `project-name`: nome curto e descritivo (ex: `car-dealer`)
 - Cada artigo deve ter um `README.md` com:
   - titulo do artigo
-  - link publicado
   - stack
   - lista de projetos e como executar
-
-Um artigo pode estar `em preparacao` ou `publicado`.
 
 ## Como adicionar um novo artigo
 

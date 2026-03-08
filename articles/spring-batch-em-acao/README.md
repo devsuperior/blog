@@ -3,8 +3,6 @@
 ## Metadados
 
 - Titulo: Spring Batch em acao: processamento de grandes lotes de dados
-- Status: em preparacao
-- URL do artigo: preencher apos publicacao
 - Stack: Java, Spring Boot, Spring Batch
 
 ## Projetos

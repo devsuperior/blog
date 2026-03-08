@@ -22,7 +22,6 @@ Required:
 Optional:
   --project    Nome de projeto (repita a flag para mais de um; default: app)
   --stack      Stack principal (default: preencher)
-  --status     em preparacao | publicado (default: em preparacao)
   -h, --help   Exibe ajuda
 
 Example:
@@ -44,7 +43,6 @@ escape_markdown_cell() {
 ARTICLE_ID=""
 TITLE=""
 STACK="preencher"
-STATUS="em preparacao"
 PROJECT_NAMES=()
 
 while [[ $# -gt 0 ]]; do
@@ -63,10 +61,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     --stack)
       STACK="${2:-}"
-      shift 2
-      ;;
-    --status)
-      STATUS="${2:-}"
       shift 2
       ;;
     -h|--help)
@@ -89,11 +83,6 @@ fi
 
 if [[ ! "${ARTICLE_ID}" =~ ^[a-z0-9-]+$ ]]; then
   echo "Erro: --id deve seguir o formato slug-do-artigo (minusculo)." >&2
-  exit 1
-fi
-
-if [[ ! "${STATUS}" =~ ^(em\ preparacao|publicado)$ ]]; then
-  echo "Erro: --status deve ser 'em preparacao' ou 'publicado'." >&2
   exit 1
 fi
 
@@ -196,7 +185,6 @@ while IFS= read -r line || [[ -n "${line}" ]]; do
 
   line="${line//<article-id>/${ARTICLE_ID}}"
   line="${line//<titulo-do-artigo>/${TITLE}}"
-  line="${line//<status>/${STATUS}}"
   line="${line//<tecnologias-principais>/${STACK}}"
   printf '%s\n' "${line}" >> "${tmp_readme_file}"
 done < "${TEMPLATE_FILE}"
