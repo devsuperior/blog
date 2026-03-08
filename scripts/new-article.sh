@@ -10,96 +10,25 @@ ROOT_README_FILE="${REPO_ROOT}/README.md"
 INDEX_HEADER='| article-id | titulo | stack | projetos |'
 INDEX_SEPARATOR='| --- | --- | --- | --- |'
 
-usage() {
-  cat <<'EOF'
-Usage:
-  bash scripts/new-article.sh --id slug-do-artigo --title "Titulo" [options]
-
-Required:
-  --id         Article id no formato slug-do-artigo
-  --title      Titulo do artigo
-
-Optional:
-  --project    Nome de projeto (repita a flag para mais de um; default: app)
-  --stack      Stack principal (default: preencher)
-  -h, --help   Exibe ajuda
-
-Example:
-  bash scripts/new-article.sh \
-    --id introducao-ao-kafka \
-    --title "Introducao ao Kafka" \
-    --project kafka-api \
-    --project kafka-consumer \
-    --stack "Java, Spring Boot, Kafka"
-EOF
-}
-
 escape_markdown_cell() {
   local value="$1"
   value="${value//|/\\|}"
   printf '%s' "$value"
 }
 
+if [[ $# -gt 0 ]]; then
+  echo "Erro: este script agora e interativo e nao aceita parametros via CLI." >&2
+  echo "Uso: bash scripts/new-article.sh" >&2
+  exit 1
+fi
+
 ARTICLE_ID=""
 TITLE=""
 STACK="preencher"
 PROJECT_NAMES=()
 
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --id)
-      ARTICLE_ID="${2:-}"
-      shift 2
-      ;;
-    --title)
-      TITLE="${2:-}"
-      shift 2
-      ;;
-    --project)
-      PROJECT_NAMES+=("${2:-}")
-      shift 2
-      ;;
-    --stack)
-      STACK="${2:-}"
-      shift 2
-      ;;
-    -h|--help)
-      usage
-      exit 0
-      ;;
-    *)
-      echo "Parametro invalido: $1" >&2
-      usage
-      exit 1
-      ;;
-  esac
-done
-
-if [[ -z "${ARTICLE_ID}" || -z "${TITLE}" ]]; then
-  echo "Erro: --id e --title sao obrigatorios." >&2
-  usage
-  exit 1
-fi
-
-if [[ ! "${ARTICLE_ID}" =~ ^[a-z0-9-]+$ ]]; then
-  echo "Erro: --id deve seguir o formato slug-do-artigo (minusculo)." >&2
-  exit 1
-fi
-
-if [[ ${#PROJECT_NAMES[@]} -eq 0 ]]; then
-  PROJECT_NAMES=("app")
-fi
-
 if [[ ! -f "${TEMPLATE_FILE}" ]]; then
   echo "Erro: template nao encontrado em ${TEMPLATE_FILE}" >&2
-  exit 1
-fi
-
-ARTICLE_DIR="${ARTICLES_DIR}/${ARTICLE_ID}"
-README_FILE="${ARTICLE_DIR}/README.md"
-
-if [[ -d "${ARTICLE_DIR}" ]]; then
-  echo "Erro: artigo ja existe: ${ARTICLE_DIR}" >&2
   exit 1
 fi
 
@@ -108,38 +37,84 @@ if [[ ! -f "${ROOT_README_FILE}" ]]; then
   exit 1
 fi
 
-if grep -Fq "| \`${ARTICLE_ID}\` |" "${ROOT_README_FILE}" || \
-   grep -Fq "(articles/${ARTICLE_ID}/)" "${ROOT_README_FILE}"; then
-  echo "Erro: o indice em README.md ja possui o artigo ${ARTICLE_ID}." >&2
-  exit 1
+echo "Criacao de novo artigo (modo interativo)"
+
+while true; do
+  read -r -p "Article id (slug-do-artigo): " ARTICLE_ID
+
+  if [[ -z "${ARTICLE_ID}" ]]; then
+    echo "Erro: article id e obrigatorio."
+    continue
+  fi
+
+  if [[ ! "${ARTICLE_ID}" =~ ^[a-z0-9-]+$ ]]; then
+    echo "Erro: article id deve conter apenas letras minusculas, numeros e hifen."
+    continue
+  fi
+
+  ARTICLE_DIR="${ARTICLES_DIR}/${ARTICLE_ID}"
+  README_FILE="${ARTICLE_DIR}/README.md"
+
+  if [[ -d "${ARTICLE_DIR}" ]]; then
+    echo "Erro: artigo ja existe: ${ARTICLE_DIR}"
+    continue
+  fi
+
+  if grep -Fq "| \`${ARTICLE_ID}\` |" "${ROOT_README_FILE}" || \
+     grep -Fq "(articles/${ARTICLE_ID}/)" "${ROOT_README_FILE}"; then
+    echo "Erro: o indice em README.md ja possui o artigo ${ARTICLE_ID}."
+    continue
+  fi
+
+  break
+done
+
+while true; do
+  read -r -p "Titulo do artigo: " TITLE
+  if [[ -n "${TITLE}" ]]; then
+    break
+  fi
+  echo "Erro: titulo e obrigatorio."
+done
+
+read -r -p "Stack principal [preencher]: " STACK_INPUT
+if [[ -n "${STACK_INPUT}" ]]; then
+  STACK="${STACK_INPUT}"
 fi
 
-unique_projects=()
-for project in "${PROJECT_NAMES[@]}"; do
+echo "Informe os projetos (deixe vazio para finalizar):"
+while true; do
+  read -r -p "Projeto: " project
+
   if [[ -z "${project}" ]]; then
-    echo "Erro: --project nao pode ser vazio." >&2
-    exit 1
+    break
   fi
 
   if [[ ! "${project}" =~ ^[a-z0-9-]+$ ]]; then
-    echo "Erro: --project deve conter apenas letras minusculas, numeros e hifen." >&2
-    exit 1
+    echo "Erro: projeto deve conter apenas letras minusculas, numeros e hifen."
+    continue
   fi
 
   already_added=0
-  for existing in "${unique_projects[@]}"; do
+  for existing in "${PROJECT_NAMES[@]}"; do
     if [[ "${existing}" == "${project}" ]]; then
       already_added=1
       break
     fi
   done
 
-  if [[ ${already_added} -eq 0 ]]; then
-    unique_projects+=("${project}")
+  if [[ ${already_added} -eq 1 ]]; then
+    echo "Aviso: projeto repetido ignorado: ${project}"
+    continue
   fi
+
+  PROJECT_NAMES+=("${project}")
 done
 
-PROJECT_NAMES=("${unique_projects[@]}")
+if [[ ${#PROJECT_NAMES[@]} -eq 0 ]]; then
+  PROJECT_NAMES=("app")
+  echo "Nenhum projeto informado. Usando projeto padrao: app"
+fi
 
 mkdir -p "${ARTICLE_DIR}/projects" "${ARTICLE_DIR}/assets" "${ARTICLE_DIR}/docs"
 touch "${ARTICLE_DIR}/projects/.gitkeep"

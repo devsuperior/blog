@@ -17,16 +17,12 @@ Cada artigo tecnico com codigo pratico deve ter sua pasta propria dentro de `art
 Use o script (Git Bash / Linux):
 
 ```bash
-bash scripts/new-article.sh \
-  --id introducao-ao-kafka \
-  --title "Introducao ao Kafka" \
-  --project kafka-api \
-  --project kafka-consumer \
-  --stack "Java, Spring Boot, Kafka"
+bash scripts/new-article.sh
 ```
 
 O script:
 
+- solicita de forma interativa: `article-id`, `titulo`, `stack` e `projetos`
 - cria a estrutura padrao do artigo
 - adiciona `.gitkeep` nas pastas padrao
 - atualiza automaticamente o indice de artigos neste README
