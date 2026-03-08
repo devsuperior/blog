@@ -15,6 +15,35 @@ escape_markdown_cell() {
   printf '%s' "$value"
 }
 
+ask_yes_no() {
+  local prompt="$1"
+  local default_answer="$2"
+  local answer=""
+
+  while true; do
+    if [[ "${default_answer}" == "s" ]]; then
+      read -r -p "${prompt} [S/n]: " answer
+      answer="${answer:-s}"
+    else
+      read -r -p "${prompt} [s/N]: " answer
+      answer="${answer:-n}"
+    fi
+
+    answer="$(printf '%s' "${answer}" | tr '[:upper:]' '[:lower:]')"
+    case "${answer}" in
+      s|sim|y|yes)
+        return 0
+        ;;
+      n|nao|no)
+        return 1
+        ;;
+      *)
+        echo "Erro: responda com s ou n."
+        ;;
+    esac
+  done
+}
+
 slugify() {
   local value="$1"
   local slug
@@ -37,6 +66,9 @@ TITLE=""
 STACK="preencher"
 PROJECT_NAMES=()
 PROJECT_OBJECTIVES=()
+PROJECT_COUNT=0
+CREATE_ASSETS=0
+CREATE_DOCS=0
 
 if [[ ! -f "${ROOT_README_FILE}" ]]; then
   echo "Erro: README da raiz nao encontrado em ${ROOT_README_FILE}" >&2
@@ -83,68 +115,84 @@ if [[ -n "${STACK_INPUT}" ]]; then
   STACK="${STACK_INPUT}"
 fi
 
-echo "Informe os projetos (deixe vazio para finalizar):"
 while true; do
-  read -r -p "Projeto: " project_raw
+  read -r -p "Quantidade de projetos do artigo: " project_count_raw
 
-  if [[ -z "${project_raw}" ]]; then
-    break
-  fi
-
-  project="$(slugify "${project_raw}")"
-  if [[ -z "${project}" ]]; then
-    echo "Erro: nome de projeto invalido."
+  if [[ ! "${project_count_raw}" =~ ^[0-9]+$ ]]; then
+    echo "Erro: informe um numero inteiro."
     continue
   fi
 
-  if [[ "${project}" != "${project_raw}" ]]; then
-    echo "Nome de projeto normalizado para: ${project}"
-  fi
-
-  already_added=0
-  for existing in "${PROJECT_NAMES[@]}"; do
-    if [[ "${existing}" == "${project}" ]]; then
-      already_added=1
-      break
-    fi
-  done
-
-  if [[ ${already_added} -eq 1 ]]; then
-    echo "Aviso: projeto repetido ignorado: ${project}"
+  if [[ "${project_count_raw}" -lt 1 ]]; then
+    echo "Erro: a quantidade de projetos deve ser pelo menos 1."
     continue
   fi
 
-  while true; do
-    read -r -p "Objetivo do projeto ${project}: " objective
-    if [[ -n "${objective//[[:space:]]/}" ]]; then
-      break
-    fi
-    echo "Erro: objetivo do projeto e obrigatorio."
-  done
-
-  PROJECT_NAMES+=("${project}")
-  PROJECT_OBJECTIVES+=("${objective}")
+  PROJECT_COUNT="${project_count_raw}"
+  break
 done
 
-if [[ ${#PROJECT_NAMES[@]} -eq 0 ]]; then
-  PROJECT_NAMES=("app")
-  echo "Nenhum projeto informado. Usando projeto padrao: app"
-
+for ((i=1; i<=PROJECT_COUNT; i++)); do
   while true; do
-    read -r -p "Objetivo do projeto app: " default_objective
-    if [[ -n "${default_objective//[[:space:]]/}" ]]; then
-      break
-    fi
-    echo "Erro: objetivo do projeto e obrigatorio."
-  done
+    read -r -p "Projeto ${i}/${PROJECT_COUNT}: " project_raw
 
-  PROJECT_OBJECTIVES=("${default_objective}")
+    project="$(slugify "${project_raw}")"
+    if [[ -z "${project}" ]]; then
+      echo "Erro: nome de projeto invalido."
+      continue
+    fi
+
+    if [[ "${project}" != "${project_raw}" ]]; then
+      echo "Nome de projeto normalizado para: ${project}"
+    fi
+
+    already_added=0
+    for existing in "${PROJECT_NAMES[@]}"; do
+      if [[ "${existing}" == "${project}" ]]; then
+        already_added=1
+        break
+      fi
+    done
+
+    if [[ ${already_added} -eq 1 ]]; then
+      echo "Erro: projeto repetido. Informe outro nome."
+      continue
+    fi
+
+    while true; do
+      read -r -p "Objetivo do projeto ${project}: " objective
+      if [[ -n "${objective//[[:space:]]/}" ]]; then
+        break
+      fi
+      echo "Erro: objetivo do projeto e obrigatorio."
+    done
+
+    PROJECT_NAMES+=("${project}")
+    PROJECT_OBJECTIVES+=("${objective}")
+    break
+  done
+done
+
+if ask_yes_no "Deseja criar a pasta assets?" "n"; then
+  CREATE_ASSETS=1
 fi
 
-mkdir -p "${ARTICLE_DIR}/projects" "${ARTICLE_DIR}/assets" "${ARTICLE_DIR}/docs"
+if ask_yes_no "Deseja criar a pasta docs?" "n"; then
+  CREATE_DOCS=1
+fi
+
+mkdir -p "${ARTICLE_DIR}/projects"
 touch "${ARTICLE_DIR}/projects/.gitkeep"
-touch "${ARTICLE_DIR}/assets/.gitkeep"
-touch "${ARTICLE_DIR}/docs/.gitkeep"
+
+if [[ ${CREATE_ASSETS} -eq 1 ]]; then
+  mkdir -p "${ARTICLE_DIR}/assets"
+  touch "${ARTICLE_DIR}/assets/.gitkeep"
+fi
+
+if [[ ${CREATE_DOCS} -eq 1 ]]; then
+  mkdir -p "${ARTICLE_DIR}/docs"
+  touch "${ARTICLE_DIR}/docs/.gitkeep"
+fi
 
 for project in "${PROJECT_NAMES[@]}"; do
   mkdir -p "${ARTICLE_DIR}/projects/${project}"
@@ -251,6 +299,14 @@ END {
 ' "${ROOT_README_FILE}" > "${tmp_root_readme}"
 mv "${tmp_root_readme}" "${ROOT_README_FILE}"
 
+optional_dirs_output=""
+if [[ ${CREATE_ASSETS} -eq 1 ]]; then
+  optional_dirs_output+="- ${ARTICLE_DIR}/assets"$'\n'
+fi
+if [[ ${CREATE_DOCS} -eq 1 ]]; then
+  optional_dirs_output+="- ${ARTICLE_DIR}/docs"$'\n'
+fi
+
 cat <<EOF
 Artigo criado com sucesso:
 - ${ARTICLE_DIR}
@@ -259,6 +315,16 @@ Artigo criado com sucesso:
 Projetos criados:
 $(for project in "${PROJECT_NAMES[@]}"; do printf -- "- %s\n" "${ARTICLE_DIR}/projects/${project}"; done)
 
+EOF
+
+if [[ -n "${optional_dirs_output}" ]]; then
+  cat <<EOF
+Pastas opcionais criadas:
+${optional_dirs_output}
+EOF
+fi
+
+cat <<EOF
 Proximo passo:
 1. Colocar codigo em articles/${ARTICLE_ID}/projects/<project-name>
 2. Completar objetivos/comandos em ${README_FILE}

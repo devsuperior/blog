@@ -22,10 +22,11 @@ bash scripts/new-article.sh
 
 O script:
 
-- solicita de forma interativa: `titulo`, `stack`, `projetos` e `objetivo` de cada projeto
+- solicita de forma interativa: `titulo`, `stack`, `quantidade de projetos`, `projetos` e `objetivo` de cada projeto
 - gera automaticamente o `article-id` (slug) a partir do titulo informado
 - cria a estrutura padrao do artigo
-- adiciona `.gitkeep` nas pastas padrao
+- pergunta no final se deseja criar as pastas opcionais `assets` e `docs`
+- adiciona `.gitkeep` nas pastas que forem geradas
 - atualiza automaticamente o indice de artigos neste README
 
 ## Indice de artigos
