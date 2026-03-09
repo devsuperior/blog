@@ -34,3 +34,4 @@ O script:
 | article-id | titulo | stack | projetos |
 | --- | --- | --- | --- |
 | [`spring-batch-em-acao`](articles/spring-batch-em-acao/) | Spring Batch em acao: processamento de grandes lotes de dados | Java, Spring Boot, Spring Batch | `car-dealer` |
+| [`chatgpt-copilot-e-claude-como-desenvolvedores-est-o-programando-em-2026`](articles/chatgpt-copilot-e-claude-como-desenvolvedores-est-o-programando-em-2026/) | ChatGPT, Copilot e Claude: como desenvolvedores estão programando em 2026 | Java, Spring, GitHub Copilot | `dev-xp-ai` |
