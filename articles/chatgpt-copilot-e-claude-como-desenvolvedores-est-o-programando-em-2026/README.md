@@ -10,7 +10,7 @@
 ### dev-xp-ai
 
 - Caminho: `projects/dev-xp-ai`
-- Objetivo: API que faz o cadastro de desenvolvedores, usada para exercitar os conceitos de GenAI no artigo.[D[D[D[D[D[D[D[D[d
+- Objetivo: API que faz o cadastro de desenvolvedores, usada para exercitar os conceitos de GenAI no artigo.
 
 #### Execucao local
 
