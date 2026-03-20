@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: fipesearch-postgres
+    environment:
+      POSTGRES_DB: fipesearch
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:8.6.1-alpine
+    container_name: fipesearch-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --save "" --appendonly no
