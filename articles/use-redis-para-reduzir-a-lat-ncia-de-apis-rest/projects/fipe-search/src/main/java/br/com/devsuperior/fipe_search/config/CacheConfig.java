@@ -36,6 +36,7 @@ public class CacheConfig implements CachingConfigurer {
         this.ttlHours = ttlHours;
     }
 
+    @Bean
     @Override
     public CacheManager cacheManager() {
         var defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
