@@ -4,6 +4,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.context.annotation.Bean;
@@ -76,23 +77,16 @@ public class AuthorizationServerConfig {
     }
 
     // ---------------------------------------------------------
-    // Filter chain 2: demais rotas (tela de login, H2 console)
+    // Filter chain 2: demais rotas (tela de login)
     // ---------------------------------------------------------
     @Bean
     @Order(2)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/h2-console/**").permitAll()
                 .anyRequest().authenticated()
             )
-            .formLogin(Customizer.withDefaults())
-            .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/h2-console/**")
-            )
-            .headers(headers -> headers
-                .frameOptions(fo -> fo.sameOrigin())
-            );
+            .formLogin(Customizer.withDefaults());
 
         return http.build();
     }
@@ -118,12 +112,8 @@ public class AuthorizationServerConfig {
             .postLogoutRedirectUri("http://localhost:3000")
             // Scopes disponíveis para este cliente
             .scope(OidcScopes.OPENID)     // obrigatório para OIDC / ID token
-            .scope(OidcScopes.PROFILE)    // nome, foto — opcional (usuario pode negar)
-            .scope("products:read")       // leitura de produtos — obrigatório
-            .scope("products:write")      // escrita de produtos — obrigatório para ADMIN
-            // Exige que o usuário aprove os scopes na tela de consentimento
             .clientSettings(ClientSettings.builder()
-                .requireAuthorizationConsent(true)
+                .requireAuthorizationConsent(false)
                 .build())
             .build();
 
@@ -136,19 +126,19 @@ public class AuthorizationServerConfig {
     @Bean
     public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
 
-        UserDetails admin = User.builder()
-            .username("admin@example.com")
+        UserDetails maria = User.builder()
+            .username("maria@example.com")
             .password(passwordEncoder.encode("12345678"))
-            .roles("ADMIN")
+            .authorities(List.of())
             .build();
 
-        UserDetails operator = User.builder()
-            .username("operator@example.com")
+        UserDetails alex = User.builder()
+            .username("alex@example.com")
             .password(passwordEncoder.encode("12345678"))
-            .roles("OPERATOR")
+            .authorities(List.of())
             .build();
 
-        return new InMemoryUserDetailsManager(admin, operator);
+        return new InMemoryUserDetailsManager(maria, alex);
     }
 
     @Bean

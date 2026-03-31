@@ -1,18 +1,18 @@
 {
   "info": {
     "name": "spring-oauth2-authserver",
-    "description": "Collection para o Authorization Server (porta 9000).\n\n## Configuração rápida\nAntes de usar, defina as variáveis de coleção conforme necessário.\n\n## Fluxo Authorization Code (passo a passo)\n1. Execute a requisição **[1] Montar URL de autorização** — copie a URL gerada e cole no browser\n2. Faça login com admin@example.com / 12345678\n3. Aprove os scopes na tela de consentimento\n4. O browser será redirecionado para http://localhost:3000/... — copie o valor do parâmetro `code` da URL\n5. Cole o code na variável `authorization_code` da coleção\n6. Execute **[2] Trocar code por tokens** para obter o access_token e id_token\n7. Use **[3] UserInfo** e **[4] Introspect Token** com o access_token obtido",
+    "description": "Collection para o Authorization Server (porta 9000).\n\n## Configuração rápida\nAntes de usar, defina as variáveis de coleção conforme necessário.\n\n## Fluxo Authorization Code (passo a passo)\n1. Copie a URL da requisição **[1] URL de autorização hardcoded** e cole no browser\n2. Faça login com maria@example.com / 12345678\n3. O browser será redirecionado para http://localhost:9000/authorized — copie o valor do parâmetro `code` da URL\n4. Cole o code na variável `authorization_code` da coleção\n5. Execute **[2] Trocar code por tokens** para obter o access_token e id_token\n6. Use **[3] UserInfo** com o access_token obtido",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "base_url",         "value": "http://localhost:9000" },
-    { "key": "client_id",        "value": "nextjs-client" },
-    { "key": "client_secret",    "value": "nextjs-secret" },
-    { "key": "redirect_uri",     "value": "http://localhost:9000/authorized" },
-    { "key": "scopes",           "value": "openid profile products:read products:write" },
+    { "key": "base_url",           "value": "http://localhost:9000" },
+    { "key": "client_id",          "value": "nextjs-client" },
+    { "key": "client_secret",      "value": "nextjs-secret" },
+    { "key": "redirect_uri",       "value": "http://localhost:9000/authorized" },
+    { "key": "scopes",             "value": "openid" },
     { "key": "authorization_code", "value": "COLE_AQUI_O_CODE_DO_BROWSER" },
-    { "key": "access_token",     "value": "" },
-    { "key": "refresh_token",    "value": "" }
+    { "key": "access_token",       "value": "" },
+    { "key": "refresh_token",      "value": "" }
   ],
   "item": [
     {
@@ -48,7 +48,7 @@
       "name": "2. Fluxo Authorization Code",
       "item": [
         {
-          "name": "[1] Montar URL de autorização (abrir no browser)",
+          "name": "[1] URL de autorização com parâmetros",
           "request": {
             "method": "GET",
             "url": {
@@ -66,7 +66,15 @@
                 { "key": "code_challenge_method", "value": "S256" }
               ]
             },
-            "description": "NÃO execute no Postman. Cole esta URL no browser:\n\nhttp://localhost:9000/oauth2/authorize?response_type=code&client_id=nextjs-client&redirect_uri=http://localhost:9000/authorized&scope=openid%20profile%20products:read%20products:write&state=xyz&code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&code_challenge_method=S256\n\n1. Faça login (admin@example.com / 12345678)\n2. Aprove os scopes\n3. O browser cairá em erro 404 — IGNORE\n4. Copie o `code` da URL da barra de endereço\n5. Cole na variável de coleção `authorization_code`\n\nUsuários:\n- admin@example.com / 12345678 (ROLE_ADMIN)\n- operator@example.com / 12345678 (ROLE_OPERATOR)"
+            "description": "NÃO execute no Postman. Copie a URL gerada e cole no browser.\n\n1. Faça login (maria@example.com / 12345678)\n2. O browser cairá em erro — IGNORE\n3. Copie o `code` da URL da barra de endereço\n4. Cole na variável de coleção `authorization_code`\n\nUsuários:\n- maria@example.com / 12345678\n- alex@example.com / 12345678"
+          }
+        },
+        {
+          "name": "[1] URL de autorização hardcoded",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:9000/oauth2/authorize?response_type=code&client_id=nextjs-client&redirect_uri=http://localhost:9000/authorized&scope=openid&state=xyz&code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&code_challenge_method=S256",
+            "description": "NÃO execute no Postman. Copie a URL abaixo e cole no browser:\n\nhttp://localhost:9000/oauth2/authorize?response_type=code&client_id=nextjs-client&redirect_uri=http://localhost:9000/authorized&scope=openid&state=xyz&code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&code_challenge_method=S256\n\n1. Faça login (maria@example.com / 12345678)\n2. O browser cairá em erro — IGNORE\n3. Copie o `code` da URL da barra de endereço\n4. Cole na variável de coleção `authorization_code`\n\nUsuários:\n- maria@example.com / 12345678\n- alex@example.com / 12345678"
           }
         },
         {
@@ -149,66 +157,6 @@
               "bearer": [{ "key": "token", "value": "{{access_token}}" }]
             },
             "description": "Retorna as claims do usuário autenticado (sub, name, email, etc.) conforme os scopes aprovados. Requer access_token válido com scope 'openid'."
-          }
-        }
-      ]
-    },
-    {
-      "name": "4. Gerenciamento de Tokens",
-      "item": [
-        {
-          "name": "Introspectar token",
-          "request": {
-            "method": "POST",
-            "url": "{{base_url}}/oauth2/introspect",
-            "auth": { "type": "noauth" },
-            "body": {
-              "mode": "urlencoded",
-              "urlencoded": [
-                { "key": "token",         "value": "{{access_token}}" },
-                { "key": "client_id",     "value": "{{client_id}}" },
-                { "key": "client_secret", "value": "{{client_secret}}" }
-              ]
-            },
-            "description": "Verifica se um token é válido e retorna seus metadados (ativo, escopo, expiração, usuário, etc.). Autenticado com as credenciais do cliente."
-          }
-        },
-        {
-          "name": "Revogar token",
-          "request": {
-            "method": "POST",
-            "url": "{{base_url}}/oauth2/revoke",
-            "auth": { "type": "noauth" },
-            "body": {
-              "mode": "urlencoded",
-              "urlencoded": [
-                { "key": "token",         "value": "{{access_token}}" },
-                { "key": "client_id",     "value": "{{client_id}}" },
-                { "key": "client_secret", "value": "{{client_secret}}" }
-              ]
-            },
-            "description": "Invalida um access_token ou refresh_token antes do seu vencimento natural."
-          }
-        }
-      ]
-    },
-    {
-      "name": "5. Dev Tools",
-      "item": [
-        {
-          "name": "Tela de login",
-          "request": {
-            "method": "GET",
-            "url": "{{base_url}}/login",
-            "description": "Tela de login padrão do Spring Security (form login). Gerada automaticamente enquanto não houver tela customizada."
-          }
-        },
-        {
-          "name": "H2 Console",
-          "request": {
-            "method": "GET",
-            "url": "{{base_url}}/h2-console",
-            "description": "Console web do banco H2. Abrir no browser.\n\nDados de conexão:\n- JDBC URL: jdbc:h2:mem:authdb\n- User: sa\n- Password: (em branco)"
           }
         }
       ]
