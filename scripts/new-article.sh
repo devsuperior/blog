@@ -22,10 +22,10 @@ ask_yes_no() {
 
   while true; do
     if [[ "${default_answer}" == "s" ]]; then
-      read -r -p "${prompt} [S/n]: " answer
+      read -e -r -p "${prompt} [S/n]: " answer
       answer="${answer:-s}"
     else
-      read -r -p "${prompt} [s/N]: " answer
+      read -e -r -p "${prompt} [s/N]: " answer
       answer="${answer:-n}"
     fi
 
@@ -50,6 +50,7 @@ slugify() {
 
   slug="$(printf '%s' "${value}" \
     | tr '[:upper:]' '[:lower:]' \
+    | sed 'y/áàãâäéèêëíìîïóòõôöúùûüçñ/aaaaaeeeeiiiiooooouuuucn/' \
     | sed -E 's/[^a-z0-9]+/-/g; s/-+/-/g; s/^-+//; s/-+$//')"
 
   printf '%s' "${slug}"
@@ -78,7 +79,7 @@ fi
 echo "Criacao de novo artigo (modo interativo)"
 
 while true; do
-  read -r -p "Titulo do artigo: " TITLE
+  read -e -r -p "Titulo do artigo: " TITLE
   if [[ -z "${TITLE}" ]]; then
     echo "Erro: titulo e obrigatorio."
     continue
@@ -110,13 +111,13 @@ done
 
 echo "Slug gerado automaticamente: ${ARTICLE_ID}"
 
-read -r -p "Stack principal [preencher]: " STACK_INPUT
+read -e -r -p "Stack principal [preencher]: " STACK_INPUT
 if [[ -n "${STACK_INPUT}" ]]; then
   STACK="${STACK_INPUT}"
 fi
 
 while true; do
-  read -r -p "Quantidade de projetos do artigo: " project_count_raw
+  read -e -r -p "Quantidade de projetos do artigo: " project_count_raw
 
   if [[ ! "${project_count_raw}" =~ ^[0-9]+$ ]]; then
     echo "Erro: informe um numero inteiro."
@@ -134,7 +135,7 @@ done
 
 for ((i=1; i<=PROJECT_COUNT; i++)); do
   while true; do
-    read -r -p "Projeto ${i}/${PROJECT_COUNT}: " project_raw
+    read -e -r -p "Projeto ${i}/${PROJECT_COUNT}: " project_raw
 
     project="$(slugify "${project_raw}")"
     if [[ -z "${project}" ]]; then
@@ -160,7 +161,7 @@ for ((i=1; i<=PROJECT_COUNT; i++)); do
     fi
 
     while true; do
-      read -r -p "Objetivo do projeto ${project}: " objective
+      read -e -r -p "Objetivo do projeto ${project}: " objective
       if [[ -n "${objective//[[:space:]]/}" ]]; then
         break
       fi
