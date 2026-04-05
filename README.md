@@ -36,3 +36,4 @@ O script:
 | [`spring-batch-em-acao`](articles/spring-batch-em-acao/) | Spring Batch em acao: processamento de grandes lotes de dados | Java, Spring Boot, Spring Batch | `car-dealer` |
 | [`chatgpt-copilot-e-claude-como-desenvolvedores-est-o-programando-em-2026`](articles/chatgpt-copilot-e-claude-como-desenvolvedores-est-o-programando-em-2026/) | ChatGPT, Copilot e Claude: como desenvolvedores estão programando em 2026 | Java, Spring, GitHub Copilot | `dev-xp-ai` |
 | [`use-redis-para-reduzir-a-lat-ncia-de-apis-rest`](articles/use-redis-para-reduzir-a-lat-ncia-de-apis-rest/) | Use REDIS para reduzir a Latência de APIs REST | Java, Spring, Maven, Redis, Postgres | `fipe-search-redis-cache` |
+| [`deploy-de-aplicacoes-na-aws-com-ecs-fargate`](articles/deploy-de-aplicacoes-na-aws-com-ecs-fargate/) | Deploy de aplicações na AWS com ECS Fargate | Java, Spring Boot, AWS, ECS, CloudFormation | `filepack-api` |
