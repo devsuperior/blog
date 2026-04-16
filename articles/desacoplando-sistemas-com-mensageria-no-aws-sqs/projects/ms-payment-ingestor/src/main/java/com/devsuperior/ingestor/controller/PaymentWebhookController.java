@@ -28,6 +28,6 @@ public class PaymentWebhookController {
     public ResponseEntity<Map<String, String>> receivePayment(@RequestBody PaymentEventDTO event) {
         log.info("Webhook recebido para pagamento: {}", event.paymentId());
         queueService.enqueue(event);
-        return ResponseEntity.ok(Map.of("status", "accepted"));
+        return ResponseEntity.accepted().body(Map.of("status", "accepted"));
     }
 }
