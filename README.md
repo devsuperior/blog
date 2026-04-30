@@ -38,3 +38,4 @@ O script:
 | [`use-redis-para-reduzir-a-lat-ncia-de-apis-rest`](articles/use-redis-para-reduzir-a-lat-ncia-de-apis-rest/) | Use REDIS para reduzir a Latência de APIs REST | Java, Spring, Maven, Redis, Postgres | `fipe-search-redis-cache` |
 | [`deploy-de-aplicacoes-na-aws-com-ecs-fargate`](articles/deploy-de-aplicacoes-na-aws-com-ecs-fargate/) | Deploy de aplicações na AWS com ECS Fargate | Java, Spring Boot, AWS, ECS, CloudFormation | `filepack-api` |
 | [`desacoplando-sistemas-com-mensageria-no-aws-sqs`](articles/desacoplando-sistemas-com-mensageria-no-aws-sqs/) | Desacoplando sistemas com mensageria no AWS SQS | Java, Spring Boot, AWS, SQS | `localstack`, `ms-payment-ingestor`, `ms-billing` |
+| [`distribuindo-eventos-com-aws-sns-sqs`](articles/distribuindo-eventos-com-aws-sns-sqs/) | Distribuindo Eventos com AWS SNS + SQS | Java, AWS, SQS, SNS, Docker, Localstack | `localstack`, `ms-payment-ingestor`, `ms-billing`, `ms-notification`, `ms-fulfillment` |
